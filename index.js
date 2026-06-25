@@ -18,8 +18,8 @@ let db;
 // 5. Use mysql2/promise with proper async/await.
 async function connectDB() {
     try {
-        // Using the cloud MYSQL_URL from Railway, or falling back to local MySQL
-        const connectionUrl = process.env.MYSQL_URL || process.env.DATABASE_URL || 'mysql://root:root@localhost:3306/github_analyzer';
+        // Using the cloud MYSQL_PUBLIC_URL, MYSQL_URL, or falling back to local MySQL
+        const connectionUrl = process.env.MYSQL_PUBLIC_URL || process.env.MYSQL_URL || process.env.DATABASE_URL || 'mysql://root:root@localhost:3306/github_analyzer';
         db = await mysql.createConnection(connectionUrl);
         // 8. Print "Database connected successfully" when the connection succeeds.
         console.log('Database connected successfully');
