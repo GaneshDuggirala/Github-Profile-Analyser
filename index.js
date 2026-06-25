@@ -1,7 +1,6 @@
-// 10. Ensure dotenv is loaded only for local development
-if (process.env.NODE_ENV !== 'production') {
-    require('dotenv').config();
-}
+// Load dotenv globally so it always loads the local .env file.
+// On Railway, this is safely ignored because .env is not uploaded.
+require('dotenv').config();
 
 const express = require('express');
 const mysql = require('mysql2/promise');
@@ -26,7 +25,7 @@ async function connectDB() {
         console.log('Database connected successfully');
     } catch (err) {
         // 6. Add proper try/catch around the database connection.
-        console.error('Database connection failed:', err.message);
+        console.error('Database connection failed:', err);
         // 7. Exit the process if the database connection fails during startup.
         process.exit(1);
     }
