@@ -1,4 +1,8 @@
-require('dotenv').config();
+// 10. Ensure dotenv is loaded only for local development
+if (process.env.NODE_ENV !== 'production') {
+    require('dotenv').config();
+}
+
 const express = require('express');
 const mysql = require('mysql2/promise');
 const axios = require('axios');
@@ -6,18 +10,33 @@ const axios = require('axios');
 const app = express();
 app.use(express.json());
 
+// 4. If any environment variable is missing, log a clear error explaining which variable is missing.
+const requiredEnvVars = ['DATABASE_URL'];
+for (const envVar of requiredEnvVars) {
+    if (!process.env[envVar]) {
+        console.error(`Error: Missing required environment variable: ${envVar}`);
+        process.exit(1); // 7. Exit the process if environment variable is missing
+    }
+}
+
 // Database connection
 let db;
+
+// 5. Use mysql2/promise with proper async/await.
 async function connectDB() {
-    db = await mysql.createConnection({
-        host: process.env.DB_HOST || 'localhost',
-        user: process.env.DB_USER || 'root',
-        password: process.env.DB_PASSWORD || '',
-        database: process.env.DB_NAME || 'github_analyzer'
-    });
-    console.log('connected to database');
+    try {
+        // 2 & 3. Remove hardcoded values and use environment variables instead
+        // Using a single connection string (DATABASE_URL)
+        db = await mysql.createConnection(process.env.DATABASE_URL);
+        // 8. Print "Database connected successfully" when the connection succeeds.
+        console.log('Database connected successfully');
+    } catch (err) {
+        // 6. Add proper try/catch around the database connection.
+        console.error('Database connection failed:', err.message);
+        // 7. Exit the process if the database connection fails during startup.
+        process.exit(1);
+    }
 }
-connectDB();
 
 // 1. Fetch from github and save
 app.post('/api/profiles/:username', async (req, res) => {
@@ -44,7 +63,7 @@ app.post('/api/profiles/:username', async (req, res) => {
         res.json({ message: 'saved to db', data: data });
 
     } catch (err) {
-        console.log(err);
+        console.error(err);
         res.status(500).json({ error: 'something went wrong or user not found' });
     }
 });
@@ -55,7 +74,7 @@ app.get('/api/profiles', async (req, res) => {
         const [rows] = await db.query('SELECT * FROM profiles');
         res.json(rows);
     } catch (err) {
-        console.log(err);
+        console.error(err);
         res.status(500).json({ error: 'database error' });
     }
 });
@@ -72,11 +91,16 @@ app.get('/api/profiles/:username', async (req, res) => {
             res.status(404).json({ message: 'user not found in db' });
         }
     } catch (err) {
-        console.log(err);
+        console.error(err);
         res.status(500).json({ error: 'database error' });
     }
 });
 
-app.listen(3000, () => {
-    console.log('server started on port 3000');
+const PORT = process.env.PORT || 3000;
+
+// Start server only after database connection is successful
+connectDB().then(() => {
+    app.listen(PORT, () => {
+        console.log(`server started on port ${PORT}`);
+    });
 });

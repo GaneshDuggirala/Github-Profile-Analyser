@@ -7,10 +7,8 @@ This is a simple node.js and express project that fetches data from github api a
 2. setup your mysql database using the `schema.sql` file
 3. create a `.env` file and put your database details:
 ```
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=
-DB_NAME=github_analyzer
+DATABASE_URL=mysql://root:yourpassword@localhost:3306/github_analyzer
+PORT=3000
 ```
 4. run the server: `node index.js`
 
