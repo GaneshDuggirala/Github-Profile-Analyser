@@ -10,14 +10,8 @@ const axios = require('axios');
 const app = express();
 app.use(express.json());
 
-// 4. If any environment variable is missing, log a clear error explaining which variable is missing.
-const requiredEnvVars = ['DATABASE_URL'];
-for (const envVar of requiredEnvVars) {
-    if (!process.env[envVar]) {
-        console.error(`Error: Missing required environment variable: ${envVar}`);
-        process.exit(1); // 7. Exit the process if environment variable is missing
-    }
-}
+// We removed the hard crash for missing DATABASE_URL.
+// If it's missing, it will automatically default to the local database URL below.
 
 // Database connection
 let db;
@@ -25,9 +19,9 @@ let db;
 // 5. Use mysql2/promise with proper async/await.
 async function connectDB() {
     try {
-        // 2 & 3. Remove hardcoded values and use environment variables instead
-        // Using a single connection string (DATABASE_URL)
-        db = await mysql.createConnection(process.env.DATABASE_URL);
+        // Using the cloud DATABASE_URL from Railway, or falling back to local MySQL
+        const connectionUrl = process.env.DATABASE_URL || 'mysql://root:root@localhost:3306/github_analyzer';
+        db = await mysql.createConnection(connectionUrl);
         // 8. Print "Database connected successfully" when the connection succeeds.
         console.log('Database connected successfully');
     } catch (err) {
